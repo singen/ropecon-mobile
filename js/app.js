@@ -131,7 +131,7 @@ var app = function($) {
 				}
 				var loc = $(item).attr("location")
 				var filtertext = type + people + ' ' + name + ' ' + loc
-				list.before('<li data-filtertext="' + filtertext + '" data-time="' + date.unix() + '">' +
+				list.before('<li data-filtertext="' + filtertext + '" data-time="' + date.unix() + '" data-endtime="' + enddate.unix() + '">' +
 				'<p class="ui-li-desc"><strong>Aika: ' + time + '</strong></p>' + 
 				'<h3 class="ui-li-heading">' + name + '</h3>' + 
 				'<p class="ui-li-desc"><strong>Paikka: ' + loc + ' Kategoria: ' + type + '</strong></p>' + 
@@ -142,10 +142,15 @@ var app = function($) {
 		pub.moveTimeslots = function() {
 			futureventsAdded = false
 			now = moment()
+			$('.gear').remove()
 			$('#future').remove()
 			$('#programme > li[data-time]').each(function() {
 				var start = moment.unix(parseInt($(this).attr('data-time')))
-				if (start > now) {
+				var end = moment.unix(parseInt($(this).attr('data-endtime')))
+				if(start < now && end > now) {
+					$(this).children().first().after('<span class="gear"> </span>')
+				}
+				if(start >= now) {
 					$(this).before(futurebar)
 					futureventsAdded = true
 					return false
