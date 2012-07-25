@@ -6,6 +6,7 @@ $(document).bind('pageinit', function() {
 	app.updateAndMove()
 
 	$('#refresh-button').bind('tap', function() {
+		$.mobile.showPageLoadingMsg()
 		app.updateAndMove()
 	})
 
