@@ -3,58 +3,39 @@ $('#main').live('pageshow', function(event) {
 });
 
 $(document).bind('pageinit', function() {
-	updateAndMove()
+	app.updateAndMove()
 
 	$('#refresh-button').bind('tap', function() {
-		updateAndMove()
+		app.updateAndMove()
 	})
 
 	$('#now-button').bind('tap', function() {
 		app.moveNow()
-		iPhoneFixedScrollTo("#now")
+		if (app.anchorAdded) {
+			app.iPhoneFixedScrollTo("#now")
+		}
 		return false
 	})
 
 	$('#search-button').bind('tap', function() {
-		iPhoneFixedScrollTo("#main")
+		app.iPhoneFixedScrollTo("#main")
 		return false
 	})
 
 	$('#pe-button').bind('tap', function() {
-		iPhoneFixedScrollTo("#pe")
+		app.iPhoneFixedScrollTo("#pe")
 		return false
 	})
 
 	$('#la-button').bind('tap', function() {
-		iPhoneFixedScrollTo("#la")
+		app.iPhoneFixedScrollTo("#la")
 		return false
 	})
 
 	$('#su-button').bind('tap', function() {
-		iPhoneFixedScrollTo("#su")
+		app.iPhoneFixedScrollTo("#su")
 		return false
 	})
-
-	function updateAndMove() {
-		app.updateProgramme().done(function() {
-			$.mobile.hidePageLoadingMsg()
-			$('#programme').listview('refresh')
-			if (app.anchorAdded()) {
-				iPhoneFixedScrollTo("now")
-			}
-		})
-	}
-
-	function iPhoneFixedScrollTo(item) {
-		$('#device').css('height', '200px')
-		$('html, body').animate({
-			scrollTop: $(item).offset().top - 40
-		}, 1000, function() {
-			setTimeout(function() {
-				$('#device').css('height', '0px')
-			}, 0)
-		})
-	}
 })
 
 
@@ -75,7 +56,28 @@ var app = function($) {
 			return anchorAdded
 		}
 
-		pub.updateProgramme = function() {
+		pub.updateAndMove = function() {
+			updateProgramme().done(function() {
+				$.mobile.hidePageLoadingMsg()
+				$('#programme').listview('refresh')
+				if (anchorAdded) {
+					iPhoneFixedScrollTo("#now")
+				}
+			})
+		}
+
+		pub.iPhoneFixedScrollTo = function(item) {
+			$('#device').css('height', '200px')
+			$('html, body').animate({
+				scrollTop: $(item).offset().top - 40
+			}, 1000, function() {
+				setTimeout(function() {
+					$('#device').css('height', '0px')
+				}, 0)
+			})
+		}
+
+		function updateProgramme() {
 			var now = moment()
 			anchorAdded = false
 			$('#programme').html(initialcontent)
@@ -98,7 +100,7 @@ var app = function($) {
 			})
 		}
 
-		var addItem = function(list, date, item, now) {
+		function addItem(list, date, item, now) {
 				var enddate = moment($(item).attr("endday") + "T" + $(item).attr("endtime"))
 				if (date > now && anchorAdded === false) {
 					list.before(nowbar)
@@ -138,6 +140,7 @@ var app = function($) {
 				'<p class="ui-li-desc"><strong>Paikka: ' + loc + ' Kategoria: ' + type + '</strong></p>' + 
 				'<p class="item-desc-with-wrap">' + $(item).attr("description") + '<br>Järjestäjä: ' + people + '</p>' + '</li>')
 			}
+
 
 		pub.moveNow = function() {
 			anchorAdded = false
