@@ -11,9 +11,9 @@ $(document).bind('pageinit', function() {
 	})
 
 	$('#now-button').bind('tap', function() {
-		app.moveNow()
-		if (app.anchorAdded) {
-			app.iPhoneFixedScrollTo("#now")
+		app.moveTimeslots()
+		if (app.futureventsAdded()) {
+			app.iPhoneFixedScrollTo("#future")
 		}
 		return false
 	})
@@ -46,23 +46,23 @@ var app = function($) {
 
 		var fridaycutoff = moment("2012-07-28T04:00")
 		var saturdaycutoff = moment("2012-07-29T04:00")
-		var anchorAdded = false
-		var nowbar = '<li class="ui-li ui-li-divider ui-bar-e" id="now">Tuleva ohjelma</li>'
+		var futureventsAdded = false
+		var futurebar = '<li class="ui-li ui-li-divider ui-bar-e" id="future">Tuleva ohjelma</li>'
 		var initialcontent = '<li data-role="list-divider" id="pe">Perjantai</li>' + 
 		'<li data-role="list-divider" id="la">Lauantai</li>' + 
 		'<li data-role="list-divider" id="su">Sunnuntai</li>' + 
 		'<li data-role="list-divider" id="end">Ropecon päättyy</li>'
 
-		pub.anchorAdded = function() {
-			return anchorAdded
+		pub.futureventsAdded = function() {
+			return futureventsAdded
 		}
 
 		pub.updateAndMove = function() {
 			updateProgramme().done(function() {
+				app.moveTimeslots()
 				$.mobile.hidePageLoadingMsg()
-				$('#programme').listview('refresh')
-				if (anchorAdded) {
-					iPhoneFixedScrollTo("#now")
+				if (futureventsAdded) {
+					app.iPhoneFixedScrollTo("#future")
 				}
 			})
 		}
@@ -80,7 +80,7 @@ var app = function($) {
 
 		function updateProgramme() {
 			var now = moment()
-			anchorAdded = false
+			futureventsAdded = false
 			$('#programme').html(initialcontent)
 			return $.ajax({
 				url: '20.xml',
@@ -103,10 +103,6 @@ var app = function($) {
 
 		function addItem(list, date, item, now) {
 				var enddate = moment($(item).attr("endday") + "T" + $(item).attr("endtime"))
-				if (date > now && anchorAdded === false) {
-					list.before(nowbar)
-					anchorAdded = true
-				}
 				var time
 				if (enddate.diff(date, 'days', true) > 1) {
 					time = date.format("D.M. HH:mm") + "-" + enddate.format("D.M. HH:mm")
@@ -139,20 +135,19 @@ var app = function($) {
 				'<p class="ui-li-desc"><strong>Aika: ' + time + '</strong></p>' + 
 				'<h3 class="ui-li-heading">' + name + '</h3>' + 
 				'<p class="ui-li-desc"><strong>Paikka: ' + loc + ' Kategoria: ' + type + '</strong></p>' + 
-				'<p class="item-desc-with-wrap">' + $(item).attr("description") + '<br>Järjestäjä: ' + people + '</p>' + '</li>')
+				'<p class="item-desc-with-wrap">' + $(item).attr("description") + '<br>Järjestäjä: ' + people + '</p></li>')
 			}
 
 
-		pub.moveNow = function() {
-			anchorAdded = false
+		pub.moveTimeslots = function() {
+			futureventsAdded = false
 			now = moment()
-			$('#nowlink').remove()
-			$('#now').remove()
-			$('#programme > li').each(function() {
-				var start = $(this).attr('data-time')
-				if (start > now.unix()) {
-					$(this).before(nowbar)
-					anchorAdded = true
+			$('#future').remove()
+			$('#programme > li[data-time]').each(function() {
+				var start = moment.unix(parseInt($(this).attr('data-time')))
+				if (start > now) {
+					$(this).before(futurebar)
+					futureventsAdded = true
 					return false
 				}
 			})
